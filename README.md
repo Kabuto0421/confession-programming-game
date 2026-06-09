@@ -2,6 +2,14 @@
 
 短時間で遊べるWebミニゲームです。告白をきっかけに恋愛ADV風の画面がコード修正画面へ切り替わり、プレイヤーは心理的な選択肢を選びながら感情コードを修正します。
 
+Play: https://confession-programming-game.vercel.app/
+
+## Screenshots
+
+![Title screen](docs/images/title.png)
+
+![Patch applied gameplay screen](docs/images/patch-applied.png)
+
 ## Features
 
 - タイトル、会話、コンパイル、リザルトの4画面構成
