@@ -1,0 +1,995 @@
+@font-face {
+  font-family: "Kenney Future";
+  src: url("/assets/Kenney Future.ttf") format("truetype");
+  font-display: swap;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  overflow: hidden;
+  background: #0b0f14;
+  color: #f9fbff;
+  font-family: "Inter", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+}
+
+button {
+  font: inherit;
+}
+
+.app,
+.stage {
+  min-height: 100vh;
+}
+
+.stage {
+  position: relative;
+  overflow: hidden;
+}
+
+.stage-title,
+.stage-dialogue {
+  background:
+    linear-gradient(90deg, rgba(20, 14, 26, 0.55), rgba(20, 14, 26, 0.08)),
+    url("/assets/bg_classroom4.png") center / cover;
+}
+
+.stage-title::after,
+.stage-dialogue::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background: radial-gradient(circle at 72% 36%, rgba(255, 230, 238, 0.4), transparent 34%);
+  pointer-events: none;
+}
+
+.title-block {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  align-content: center;
+  width: min(780px, calc(100vw - 48px));
+  min-height: 100vh;
+  margin-left: clamp(24px, 8vw, 110px);
+  padding-bottom: 10vh;
+}
+
+.system-label {
+  margin: 0 0 16px;
+  color: #7efad7;
+  font-family: "Kenney Future", monospace;
+  font-size: clamp(0.8rem, 1.8vw, 1rem);
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2.8rem, 8vw, 6.7rem);
+  line-height: 0.98;
+  letter-spacing: 0;
+  text-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+}
+
+.primary-action,
+.confess-button,
+.choice {
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: #fff;
+  background: linear-gradient(135deg, #f34875, #3ccfcf);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    filter 160ms ease,
+    border-color 160ms ease;
+}
+
+.primary-action:hover,
+.confess-button:hover,
+.choice:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.12);
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+.primary-action {
+  width: min(360px, 100%);
+  min-height: 58px;
+  margin-top: 32px;
+  border-radius: 8px;
+  font-weight: 800;
+}
+
+.ambient-hearts {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.ambient-hearts::before,
+.ambient-hearts::after {
+  position: absolute;
+  content: "好き";
+  color: rgba(255, 105, 147, 0.28);
+  font-family: "Kenney Future", monospace;
+  font-size: clamp(5rem, 18vw, 18rem);
+  transform: rotate(-10deg);
+}
+
+.ambient-hearts::before {
+  right: 6vw;
+  top: 12vh;
+}
+
+.ambient-hearts::after {
+  right: 28vw;
+  bottom: 6vh;
+  color: rgba(126, 250, 215, 0.22);
+  font-size: clamp(3rem, 10vw, 10rem);
+}
+
+.character {
+  position: absolute;
+  z-index: 2;
+  object-fit: contain;
+  pointer-events: none;
+  filter: drop-shadow(0 26px 44px rgba(0, 0, 0, 0.45));
+}
+
+.character-normal {
+  right: clamp(-80px, 2vw, 70px);
+  bottom: -16vh;
+  width: min(50vw, 620px);
+  max-height: 112vh;
+}
+
+.dialogue-box {
+  position: absolute;
+  right: clamp(18px, 5vw, 64px);
+  bottom: clamp(18px, 7vh, 72px);
+  left: clamp(18px, 5vw, 64px);
+  z-index: 3;
+  min-height: 180px;
+  padding: clamp(20px, 3vw, 34px);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 8px;
+  background: rgba(16, 18, 28, 0.82);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.36);
+}
+
+.speaker {
+  margin-bottom: 10px;
+  color: #7efad7;
+  font-weight: 800;
+}
+
+.dialogue-box p {
+  max-width: 720px;
+  margin: 0 0 22px;
+  font-size: clamp(1.1rem, 2.1vw, 1.55rem);
+  line-height: 1.7;
+}
+
+.confess-button {
+  min-width: 180px;
+  min-height: 52px;
+  padding: 0 28px;
+  border-radius: 8px;
+  font-weight: 800;
+}
+
+.transitioning {
+  animation: screenCrash 900ms steps(2, end);
+}
+
+@keyframes screenCrash {
+  0%,
+  100% {
+    filter: none;
+    transform: none;
+  }
+  20% {
+    filter: hue-rotate(120deg) contrast(2);
+    transform: skewX(4deg);
+  }
+  45% {
+    filter: invert(1) saturate(3);
+    transform: translateX(-18px);
+  }
+  70% {
+    filter: contrast(3) brightness(0.5);
+    transform: translateX(22px) skewY(2deg);
+  }
+}
+
+.stage-compile {
+  background:
+    linear-gradient(rgba(4, 9, 10, 0.82), rgba(4, 9, 10, 0.92)),
+    url("/assets/bg_matrixhex.png") center / cover;
+}
+
+.matrix-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  color: rgba(126, 250, 215, 0.48);
+  font-family: "Kenney Future", monospace;
+  pointer-events: none;
+}
+
+.matrix-bg span {
+  position: absolute;
+  top: -10vh;
+  writing-mode: vertical-rl;
+  animation: rain linear infinite;
+  text-shadow: 0 0 12px rgba(126, 250, 215, 0.65);
+}
+
+@keyframes rain {
+  to {
+    transform: translateY(120vh);
+  }
+}
+
+.scanline {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.04),
+    rgba(255, 255, 255, 0.04) 1px,
+    transparent 1px,
+    transparent 5px
+  );
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+.runtime-layout {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: minmax(180px, 0.72fr) minmax(360px, 1.5fr) minmax(260px, 0.8fr);
+  gap: 16px;
+  min-height: calc(100vh - 190px);
+  padding: 24px;
+}
+
+.portrait-panel,
+.code-panel,
+.status-panel,
+.choice-bar,
+.log-panel,
+.result-panel {
+  border: 1px solid rgba(126, 250, 215, 0.3);
+  border-radius: 8px;
+  background: rgba(3, 10, 14, 0.78);
+  box-shadow: 0 0 36px rgba(126, 250, 215, 0.08);
+  backdrop-filter: blur(12px);
+}
+
+.portrait-panel {
+  position: relative;
+  overflow: hidden;
+  min-height: 420px;
+}
+
+.character-compile {
+  right: 50%;
+  bottom: -150px;
+  width: min(38vw, 440px);
+  max-width: 480px;
+  transform: translateX(50%);
+}
+
+.character-compile.is-panic {
+  animation: panic 260ms steps(2, end) infinite;
+}
+
+@keyframes panic {
+  50% {
+    transform: translateX(calc(50% + 8px));
+    filter: drop-shadow(0 26px 44px rgba(0, 0, 0, 0.45)) hue-rotate(45deg);
+  }
+}
+
+.heartbeat-line {
+  position: absolute;
+  right: 18px;
+  bottom: 24px;
+  left: 18px;
+  height: 76px;
+  background:
+    linear-gradient(90deg, transparent, rgba(255, 72, 116, 0.9), transparent),
+    repeating-linear-gradient(90deg, transparent 0 20px, rgba(255, 72, 116, 0.6) 20px 23px, transparent 23px 42px);
+  clip-path: polygon(0 52%, 12% 52%, 16% 20%, 21% 80%, 27% 52%, 42% 52%, 47% 34%, 52% 67%, 58% 52%, 100% 52%);
+  animation: pulseLine 700ms ease-in-out infinite;
+}
+
+@keyframes pulseLine {
+  50% {
+    opacity: 0.45;
+    transform: scaleY(1.18);
+  }
+}
+
+.code-panel {
+  overflow: hidden;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(126, 250, 215, 0.25);
+  color: #7efad7;
+  font-family: "Kenney Future", monospace;
+}
+
+.target-indicator {
+  margin-left: auto;
+  padding: 5px 9px;
+  border: 1px solid rgba(255, 72, 116, 0.55);
+  border-radius: 999px;
+  color: #ff8aa6;
+  background: rgba(255, 72, 116, 0.1);
+  font-size: 0.72rem;
+  white-space: nowrap;
+  animation: targetPulse 1200ms ease-in-out infinite;
+}
+
+.timer {
+  color: #ff4874;
+}
+
+.code-output {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  min-height: 430px;
+  margin: 0;
+  padding: 20px;
+  overflow: auto;
+  color: #f4fffb;
+  font-family: "SFMono-Regular", "Menlo", "Consolas", monospace;
+  font-size: clamp(0.85rem, 1.55vw, 1.08rem);
+  line-height: 1.55;
+  text-shadow: 0 0 8px rgba(126, 250, 215, 0.3);
+}
+
+.code-line {
+  display: grid;
+  grid-template-columns: 34px 112px minmax(0, 1fr);
+  align-items: center;
+  min-height: 34px;
+  padding: 3px 10px 3px 0;
+  border-left: 3px solid transparent;
+  border-radius: 6px;
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.code-line code {
+  overflow-wrap: anywhere;
+}
+
+.line-number {
+  color: rgba(244, 255, 251, 0.42);
+  text-align: right;
+  user-select: none;
+}
+
+.line-marker {
+  min-height: 20px;
+  color: rgba(244, 255, 251, 0.38);
+  font-family: "Kenney Future", monospace;
+  font-size: 0.64rem;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.code-line.is-target {
+  border-left-color: #ff4874;
+  background:
+    linear-gradient(90deg, rgba(255, 72, 116, 0.22), rgba(255, 72, 116, 0.06) 58%, transparent),
+    rgba(255, 255, 255, 0.03);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 72, 116, 0.22),
+    0 0 26px rgba(255, 72, 116, 0.12);
+  animation: targetLinePulse 1200ms ease-in-out infinite;
+}
+
+.code-line.is-target .line-marker {
+  color: #ff8aa6;
+}
+
+.code-line.is-patched {
+  border-left-color: #7efad7;
+  background:
+    linear-gradient(90deg, rgba(126, 250, 215, 0.22), rgba(126, 250, 215, 0.06) 58%, transparent),
+    rgba(255, 255, 255, 0.03);
+  box-shadow:
+    inset 0 0 0 1px rgba(126, 250, 215, 0.24),
+    0 0 30px rgba(126, 250, 215, 0.16);
+}
+
+.code-line.is-patched .line-marker {
+  color: #7efad7;
+}
+
+@keyframes targetPulse {
+  50% {
+    border-color: rgba(255, 138, 166, 0.95);
+    box-shadow: 0 0 16px rgba(255, 72, 116, 0.26);
+  }
+}
+
+@keyframes targetLinePulse {
+  50% {
+    background:
+      linear-gradient(90deg, rgba(255, 72, 116, 0.34), rgba(255, 72, 116, 0.1) 62%, transparent),
+      rgba(255, 255, 255, 0.05);
+  }
+}
+
+.status-panel {
+  display: grid;
+  align-content: start;
+  gap: 18px;
+  padding: 18px;
+}
+
+.gauge-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  color: #e8fbff;
+  font-size: 0.9rem;
+}
+
+.gauge-track {
+  height: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.gauge-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #3ccfcf, #ff4874);
+}
+
+.warning-window {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid rgba(255, 72, 116, 0.45);
+  border-radius: 8px;
+  background: rgba(70, 6, 22, 0.42);
+}
+
+.target-chip {
+  width: fit-content;
+  padding: 5px 8px;
+  border: 1px solid rgba(255, 72, 116, 0.55);
+  border-radius: 999px;
+  color: #ffb1c3;
+  background: rgba(255, 72, 116, 0.1);
+  font-family: "Kenney Future", monospace;
+  font-size: 0.68rem;
+}
+
+.warning-window strong {
+  color: #ff8aa6;
+}
+
+.warning-window span {
+  color: #f7d6df;
+  font-family: "SFMono-Regular", "Menlo", monospace;
+  font-size: 0.88rem;
+}
+
+.choice-bar {
+  position: relative;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 24px 12px;
+  padding: 14px;
+}
+
+.choice {
+  min-height: 58px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(60, 207, 207, 0.95), rgba(255, 72, 116, 0.9));
+  font-weight: 800;
+}
+
+.stage-compile:has(.patch-overlay) .runtime-layout,
+.stage-compile:has(.patch-overlay) .choice-bar,
+.stage-compile:has(.patch-overlay) .log-panel {
+  filter: brightness(0.42) saturate(1.4);
+}
+
+.log-panel {
+  position: relative;
+  z-index: 4;
+  min-height: 92px;
+  margin: 0 24px 18px;
+  padding: 12px 16px;
+  color: #7efad7;
+  font-family: "SFMono-Regular", "Menlo", monospace;
+  font-size: 0.82rem;
+}
+
+.log-panel p {
+  margin: 4px 0;
+}
+
+.heart-burst,
+.floating-warning,
+.patch-overlay {
+  position: fixed;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.patch-overlay {
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at center, rgba(126, 250, 215, 0.2), transparent 42%),
+    rgba(1, 4, 8, 0.5);
+  animation: overlayFlash 1500ms ease forwards;
+}
+
+.patch-card {
+  position: relative;
+  width: min(620px, calc(100vw - 36px));
+  padding: clamp(22px, 4vw, 36px);
+  overflow: hidden;
+  border: 1px solid rgba(126, 250, 215, 0.72);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(5, 18, 24, 0.96), rgba(27, 8, 26, 0.94)),
+    rgba(2, 8, 12, 0.96);
+  box-shadow:
+    0 0 42px rgba(126, 250, 215, 0.28),
+    0 28px 80px rgba(0, 0, 0, 0.62);
+  animation: patchCardIn 1500ms cubic-bezier(0.18, 0.95, 0.24, 1) forwards;
+}
+
+.patch-error .patch-card {
+  border-color: rgba(255, 72, 116, 0.78);
+  box-shadow:
+    0 0 42px rgba(255, 72, 116, 0.26),
+    0 28px 80px rgba(0, 0, 0, 0.62);
+}
+
+.patch-card::before {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.22), transparent);
+  transform: translateX(-120%);
+  animation: patchSweep 900ms 160ms ease-out forwards;
+}
+
+.patch-label {
+  display: inline-block;
+  margin-bottom: 12px;
+  color: #7efad7;
+  font-family: "Kenney Future", monospace;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+}
+
+.patch-error .patch-label {
+  color: #ff8aa6;
+}
+
+.patch-card h2 {
+  margin: 0 0 18px;
+  color: #f9fffd;
+  font-family: "Kenney Future", "Hiragino Sans", sans-serif;
+  font-size: clamp(2.1rem, 7vw, 4.7rem);
+  line-height: 0.95;
+  letter-spacing: 0;
+  text-shadow: 0 0 18px rgba(126, 250, 215, 0.42);
+}
+
+.patch-error .patch-card h2 {
+  text-shadow: 0 0 18px rgba(255, 72, 116, 0.46);
+}
+
+.patch-code {
+  display: grid;
+  gap: 7px;
+  margin: 0 0 16px;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.38);
+}
+
+.patch-code code {
+  display: block;
+  color: #dbfff5;
+  font-family: "SFMono-Regular", "Menlo", "Consolas", monospace;
+  font-size: clamp(0.86rem, 2.2vw, 1.05rem);
+  line-height: 1.45;
+  animation: codeType 640ms steps(18, end) both;
+}
+
+.patch-error .patch-code code {
+  color: #ffd6e0;
+}
+
+.patch-card p {
+  margin: 0;
+  color: rgba(248, 255, 253, 0.88);
+  font-family: "SFMono-Regular", "Menlo", monospace;
+}
+
+.patch-rings,
+.patch-rings::before,
+.patch-rings::after {
+  position: absolute;
+  border: 1px solid rgba(126, 250, 215, 0.46);
+  border-radius: 50%;
+  animation: ringPulse 1500ms ease-out forwards;
+}
+
+.patch-rings {
+  width: min(70vw, 740px);
+  aspect-ratio: 1;
+}
+
+.patch-rings::before,
+.patch-rings::after {
+  inset: 12%;
+  content: "";
+}
+
+.patch-rings::after {
+  inset: 24%;
+  border-color: rgba(255, 72, 116, 0.38);
+  animation-delay: 120ms;
+}
+
+@keyframes overlayFlash {
+  0% {
+    opacity: 0;
+  }
+  12%,
+  82% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes patchCardIn {
+  0% {
+    opacity: 0;
+    transform: translateY(28px) scale(0.86) rotateX(12deg);
+  }
+  14% {
+    opacity: 1;
+    transform: translateY(0) scale(1.04);
+  }
+  72% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-18px) scale(0.98);
+  }
+}
+
+@keyframes patchSweep {
+  to {
+    transform: translateX(120%);
+  }
+}
+
+@keyframes codeType {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes ringPulse {
+  0% {
+    opacity: 0;
+    transform: scale(0.4) rotate(0deg);
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.25) rotate(24deg);
+  }
+}
+
+.heart-burst {
+  inset: 0;
+}
+
+.heart-burst i {
+  position: absolute;
+  left: 50%;
+  top: 56%;
+  width: 14px;
+  height: 14px;
+  background: #ff5d8f;
+  transform: rotate(45deg);
+  animation: burst 820ms ease-out forwards;
+}
+
+.heart-burst i::before,
+.heart-burst i::after {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: inherit;
+  content: "";
+}
+
+.heart-burst i::before {
+  left: -7px;
+}
+
+.heart-burst i::after {
+  top: -7px;
+}
+
+@keyframes burst {
+  to {
+    opacity: 0;
+    transform: rotate(45deg) translate(calc((var(--i) - 9) * 22px), calc(-160px + (var(--i) % 5) * 28px));
+  }
+}
+
+.floating-warning {
+  top: 18vh;
+  right: 10vw;
+  padding: 14px 20px;
+  border: 1px solid #ff4874;
+  border-radius: 8px;
+  background: rgba(60, 0, 18, 0.92);
+  color: #fff;
+  font-family: "Kenney Future", monospace;
+  animation: warningPop 880ms ease-out forwards;
+}
+
+@keyframes warningPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(24px);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.08) translateY(-60px);
+  }
+}
+
+.stage-result {
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    linear-gradient(rgba(4, 9, 10, 0.68), rgba(4, 9, 10, 0.78)),
+    url("/assets/bg_matrixhex.png") center / cover;
+}
+
+.stage-result.result-good {
+  background:
+    radial-gradient(circle at center, rgba(255, 240, 247, 0.42), transparent 45%),
+    linear-gradient(rgba(8, 18, 20, 0.58), rgba(14, 9, 20, 0.76)),
+    url("/assets/bg_classroom4.png") center / cover;
+}
+
+.result-panel {
+  width: min(780px, 100%);
+  padding: clamp(24px, 5vw, 52px);
+}
+
+.result-panel h1 {
+  margin-bottom: 16px;
+  font-family: "Kenney Future", "Hiragino Sans", sans-serif;
+  font-size: clamp(2.3rem, 6vw, 5rem);
+}
+
+.result-panel p {
+  margin: 0;
+  font-size: clamp(1rem, 2vw, 1.22rem);
+  line-height: 1.75;
+}
+
+.result-stats {
+  display: grid;
+  gap: 14px;
+  margin-top: 28px;
+}
+
+@media (max-width: 920px) {
+  body {
+    overflow: auto;
+  }
+
+  .runtime-layout {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    min-height: auto;
+    padding: 10px;
+  }
+
+  .portrait-panel {
+    min-height: 128px;
+    order: 2;
+  }
+
+  .character-compile {
+    right: -10px;
+    bottom: -138px;
+    width: min(44vw, 210px);
+    transform: none;
+    opacity: 0.78;
+  }
+
+  .heartbeat-line {
+    right: 14px;
+    bottom: 14px;
+    left: 14px;
+    height: 44px;
+  }
+
+  .code-panel {
+    order: 1;
+  }
+
+  .panel-header {
+    padding: 10px 12px;
+    gap: 8px;
+    font-size: 0.78rem;
+  }
+
+  .target-indicator {
+    padding: 4px 7px;
+    font-size: 0.62rem;
+  }
+
+  .code-output {
+    min-height: auto;
+    max-height: 40vh;
+    padding: 10px;
+    font-size: 0.78rem;
+    line-height: 1.4;
+  }
+
+  .code-line {
+    grid-template-columns: 26px 74px minmax(0, 1fr);
+    min-height: 28px;
+    padding: 2px 6px 2px 0;
+    border-left-width: 2px;
+  }
+
+  .line-marker {
+    font-size: 0.5rem;
+  }
+
+  .status-panel {
+    order: 3;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  .status-panel .gauge {
+    display: none;
+  }
+
+  .warning-window {
+    gap: 8px;
+    padding: 11px 12px;
+    background: rgba(70, 6, 22, 0.68);
+  }
+
+  .target-chip {
+    font-size: 0.58rem;
+  }
+
+  .warning-window strong {
+    font-size: 0.86rem;
+    line-height: 1.45;
+  }
+
+  .warning-window span {
+    font-size: 0.76rem;
+  }
+
+  .choice-bar {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin: 0 10px 10px;
+    padding: 10px;
+  }
+
+  .choice {
+    min-height: 46px;
+    font-size: 0.95rem;
+  }
+
+  .log-panel {
+    display: none;
+  }
+
+  .patch-card {
+    width: calc(100vw - 28px);
+    padding: 20px;
+  }
+
+  .patch-card h2 {
+    font-size: clamp(2rem, 12vw, 3.4rem);
+  }
+
+  .patch-code {
+    padding: 10px;
+  }
+
+  .patch-code code {
+    font-size: 0.78rem;
+  }
+
+  .character-normal {
+    right: -120px;
+    width: 78vw;
+    opacity: 0.9;
+  }
+}
+
+@media (max-width: 560px) {
+  .title-block {
+    margin: 0;
+    padding: 24px;
+  }
+
+  h1 {
+    font-size: clamp(2.4rem, 14vw, 4.2rem);
+  }
+
+  .dialogue-box {
+    min-height: 210px;
+  }
+}
